@@ -27,6 +27,10 @@ def closestDistanceBetweenLines(l1, l2,clampAll=True,clampA0=False,clampA1=False
     magA = np.linalg.norm(A)
     magB = np.linalg.norm(B)
 
+    if (magA == 0):
+        magA = 0.001
+    if (magB == 0):
+        magB = 0.001
     _A = A / magA
     _B = B / magB
 
@@ -129,8 +133,9 @@ def check_sim(l1,l2,angdiff=10,distdiff=15):
     if diffalt2 < diffmain: diffmain = diffalt2
     
     lenD = closestDistanceBetweenLines(l1,l2)[2] #returns 3 things
-    
-    return (diffmain<angdiff and lenD<distdiff)
+    if (diffmain<angdiff and lenD<distdiff): return 0
+    if (diffmain<angdiff and lenD<(distdiff*10)): return 1
+    return 2
 
 def auto_canny(image, sigma=0.33):
     # compute the median of the single channel pixel intensities
@@ -143,6 +148,43 @@ def auto_canny(image, sigma=0.33):
  
     # return the edged image
     return edged
+    
+def bin_lines(lns):
+    bins = [] #list of line segments?
+    toHandle = list(lns)
+    bins.append([toHandle[0]])
+    del toHandle[0]
+
+    runcount = 0
+
+    while len(toHandle)!=0:
+        delids = []
+        for li in range(len(toHandle)):
+            for bi in bins: 
+                changed = False
+                for b_item in bi:             
+                    runcount+=1
+                    z = check_sim(b_item, toHandle[li])
+                    if z == 2: #angle wrong, dist wrong
+                        break
+                    elif z == 0: #both right
+                        bi.append(toHandle[li])
+                        delids.append(li)
+                        changed = True
+                        break
+                    else: #just angle right
+                        continue
+                if changed: break
+        for i in sorted(delids,reverse=True):
+            del toHandle[i]
+        if len(delids)==0:
+            bins.append([toHandle[0]])
+            del toHandle[0]
+    print("runcount: " + str(runcount))
+    print map(len,bins)
+    return bins
+    
+    
 #/Users/tom/Documents/Embroidery/shaded/IMG_1966.jpg
 #/Users/tom/Documents/Embroidery/shaded/IMG_1967.jpg
 #/Users/tom/Documents/Embroidery/shaded/IMG_1968.jpg
@@ -161,58 +203,51 @@ def auto_canny(image, sigma=0.33):
 
 img = cv2.imread("complex/IMG_2030.JPG") #1991,1992,1993,1996,1999,2001,2004,2005
 
-small = cv2.resize(img,(img.shape[0]/3,img.shape[1]/3))
+cv2.imshow("Output",img)
+cv2.waitKey(0)
+cv2.imwrite("0original.jpg",img)
+small = cv2.resize(img,(img.shape[1]/4,img.shape[0]/4))
+
+cv2.imshow("Output",small)
+cv2.waitKey(0)
+cv2.imwrite("1smaller.jpg",small)
 
 img_grey = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
 
+cv2.imshow("Output",img_grey)
+cv2.waitKey(0)
+cv2.imwrite("2blackandwhite.jpg",img_grey)
+
+
 blur = cv2.GaussianBlur(img_grey,(9,9),0)
+
+cv2.imshow("Output",blur)
+cv2.waitKey(0)
+cv2.imwrite("3blurred.jpg",blur)
+
 
 ret,thresh1 = cv2.threshold(blur,65,255,cv2.THRESH_BINARY_INV) #60
 
-#thresh1 = auto_canny(thresh1)
-
 cv2.imshow("Output",thresh1)
 cv2.waitKey(0)
+cv2.imwrite("4thresholded+inverted.jpg",thresh1)
 
 
-lines = cv2.HoughLinesP(thresh1, 1, 1*math.pi/180.0, 75, None, 45,1) #100,30,0
+#thresh1 = auto_canny(thresh1)
+
+
+
+lines = cv2.HoughLinesP(thresh1, 1, 1*math.pi/180.0, 50, None, 30,1) #100,30,0
 #lines = cv2.HoughLinesP(thresh1, 10, 5*math.pi/180.0, 5, None, 10,2) #100,30,0
 
 print len(lines)
 lines = map(lambda x: x[0],lines)
 sL = sorted(lines,key=lambda x: (x[2]-x[0])**2+(x[3]-x[1])**2, reverse=True)
 
-bins = [] #list of line segments?
-toHandle = list(sL)
-bins.append([toHandle[0]])
-del toHandle[0]
-
-runcount = 0
-
-while len(toHandle)!=0:
-    delids = []
-    for li in range(len(toHandle)):
-        for bi in bins: #todo: check all items in each bin
-            changed = False
-            for b_item in bi:             
-                runcount+=1   
-                if check_sim(b_item, toHandle[li]):
-                    bi.append(toHandle[li])
-                    delids.append(li)
-                    changed = True
-                    break
-            if changed: break
-    for i in sorted(delids,reverse=True):
-        del toHandle[i]
-    if len(delids)==0:
-        bins.append([toHandle[0]])
-        del toHandle[0]
-            
-print("runcount: " + str(runcount))
-print map(len,bins)
+bins = bin_lines(sL)
 
 for l in sL:
-    cv2.line(small, (l[0], l[1]), (l[2], l[3]), (0,255,255), 1, 8 )
+    cv2.line(small, (l[0], l[1]), (l[2], l[3]), (255,255,255), 1, 8 )
 
 toDel = []
 
@@ -221,6 +256,10 @@ for i in range(len(bins)):
         toDel.append(i)
 for i in sorted(toDel,reverse=True):
     del bins[i]
+
+cv2.imshow("Output",small)
+cv2.waitKey(0)
+cv2.imwrite("5lines.jpg",small)
 
 
 for b in bins:
@@ -231,7 +270,7 @@ for b in bins:
     rect = cv2.minAreaRect(np.asarray(pnts))
     box = cv2.boxPoints(rect)
     box = np.int0(box)
-    cv2.drawContours(small,[box],0,(150,150,0),2)
+    cv2.drawContours(small,[box],0,(200,0,0),2)
 
     #l = b[0]
     #cv2.line(small, (l[0], l[1]), (l[2], l[3]), (0,255,0), 1, 8)
@@ -240,4 +279,6 @@ for b in bins:
 
 cv2.imshow("Output",small)
 cv2.waitKey(0)
+cv2.imwrite("6boxed_final.jpg",small)
+
 
