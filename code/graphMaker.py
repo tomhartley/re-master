@@ -82,14 +82,14 @@ def graphFromLines(ls):
     G=nx.Graph()
     for i in ls:
         G.add_edge(toNode(i[0]),toNode(i[1]))
-    #showGraph(G)
+    showGraph(G)
     G = connectNearbyNodes(G)
     while True:
         prev = len(G)
-        #showGraph(G)
+        showGraph(G)
         G = generateIntersectionNodes(G)
         mid = len(G)
-        #showGraph(G)
+        showGraph(G)
         G = connectNearbyNodes(G)
         now = len(G)
         if (prev==now==mid):

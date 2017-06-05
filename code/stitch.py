@@ -4,7 +4,6 @@ import csv
 StitchType = Enum('StitchType', 'jump stitch end')
 
 class Stitch(object):
-    
     def __init__(self,stype,pos=None):
         self.type = stype
         if (self.type==StitchType.end):

@@ -25,7 +25,7 @@ MG = graphMaker.graphFromLines(lines)
 
 circuit = list(nx.eulerian_circuit(MG))
 
-stitchlist = graphToStitch.straightStitches(circuit)
+stitchlist = graphToStitch.straightStitches(circuit,1)
 
 minimiseDesign(stitchlist) #brings it to bottom left
 
@@ -38,6 +38,6 @@ writeStitches(stitchlist,'csv_out/output.csv')
 
 os.system("./libembroidery-convert csv_out/output.csv pes_out/output.pes")
 
-#cv2.imshow("Output",img)
+cv2.imshow("Output",img)
 
-#cv2.waitKey(0)
+cv2.waitKey(0)
