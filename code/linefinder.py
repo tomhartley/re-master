@@ -1,9 +1,6 @@
 import cv2
 import numpy as np
 import math
-import csv
-
-from matplotlib import pyplot as plt
 
 def closestDistanceBetweenLines(l1, l2,clampAll=True,clampA0=False,clampA1=False,clampB0=False,clampB1=False):
 
@@ -183,59 +180,21 @@ def bin_lines(lns):
         if len(delids)==0:
             bins.append([toHandle[0]])
             del toHandle[0]
-    print("runcount: " + str(runcount))
-    print map(len,bins)
+    #print("runcount: " + str(runcount))
+    #print map(len,bins)
     return bins
-
-cap = cv2.VideoCapture(0)
-
-
-while True:
-
-    #/Users/tom/Documents/Embroidery/testsample/nonworking.tiff
-    ret, img = cap.read()
-
-    #img = cv2.imread("complex/IMG_2030.JPG")
-
-    #cv2.imshow("Output",img)
-    #cv2.waitKey(0)
-    #cv2.imwrite("0original.jpg",img)
-    small = cv2.resize(img,(img.shape[1]/1,img.shape[0]/1))
-
-    #cv2.imshow("Output",small)
-    #cv2.waitKey(0)
-    #cv2.imwrite("1smaller.jpg",small)
-
-    img_grey = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
-
-    #cv2.imshow("Output",img_grey)
-    #cv2.waitKey(0)
-    #cv2.imwrite("2blackandwhite.jpg",img_grey)
-
-
+    
+def getLines(img):
+    img_grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(img_grey,(9,9),0)
-
-    #cv2.imshow("Output",blur)
-    #cv2.waitKey(0)
-    #cv2.imwrite("3blurred.jpg",blur)
-
 
     ret,thresh1 = cv2.threshold(blur,65,255,cv2.THRESH_BINARY_INV) #65 before
 
-    #cv2.imshow("Output",thresh1)
-    #cv2.waitKey(0)
-    #cv2.imwrite("4thresholded+inverted.jpg",thresh1)
-
-
-    #thresh1 = auto_canny(thresh1)
-
-
-
     lines = cv2.HoughLinesP(thresh1, 1, 1*math.pi/180.0, 50, None, 25,1) #100,30,0
-    #lines = cv2.HoughLinesP(thresh1, 10, 5*math.pi/180.0, 5, None, 10,2) #100,30,0
+
     if lines==None:
-        break
-    print len(lines)
+        return ([])
+    #print len(lines)
     
     lines = map(lambda x: x[0],lines)
     sL = sorted(lines,key=lambda x: (x[2]-x[0])**2+(x[3]-x[1])**2, reverse=True)
@@ -255,11 +214,6 @@ while True:
             toDel.append(i)
     for i in sorted(toDel,reverse=True):
         del bins[i]
-
-    #cv2.imshow("Output",small)
-    #cv2.waitKey(0)
-    #cv2.imwrite("5lines.jpg",small)
-
 
     rectpts = []
 
@@ -286,26 +240,7 @@ while True:
         else:
             pt1 = (i[1]+i[2])/2
             pt2 = (i[0]+i[3])/2
-        cv2.line(small, (pt1[0],pt1[1]), (pt2[0],pt2[1]), (0,0,255), 3, 8 )
-        pt1 = pt1/15
-        pt2 = pt2/15
-        lns.append(((pt1[0],pt1[1]), (pt2[0],pt2[1])))
+        cv2.line(img, (pt1[0],pt1[1]), (pt2[0],pt2[1]), (0,0,255), 1, 8 )
+        lns.append((pt1, pt2))
 
-        
-    with open('outputtest.csv', 'wb') as csvfile:
-        csvwriter = csv.writer(csvfile, delimiter=',',
-                                quotechar='"', quoting=csv.QUOTE_ALL)
-        csvwriter.writerow (['*','JUMP','0','0'])
-        for i in lns:
-            csvwriter.writerow (['*','JUMP',i[0][0],i[0][1]])
-            csvwriter.writerow (['*','STITCH',i[1][0],i[1][1]])
-        csvwriter.writerow (['*','JUMP','0','0'])
-        csvwriter.writerow (['*','END','0','0'])
-
-    cv2.imshow("Output",small)
-    if cv2.waitKey(0): # & 0xFF == ord('q'):
-        break
-    
-    #cv2.imwrite("6boxed_final.jpg",small)
-
-
+    return lns, img
