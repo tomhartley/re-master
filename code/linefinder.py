@@ -186,9 +186,13 @@ def bin_lines(lns):
     
 def getLines(img):
     img_grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(img_grey,(9,9),0)
+    blur = cv2.GaussianBlur(img_grey,(9,9),0) #9x9 before
 
     ret,thresh1 = cv2.threshold(blur,65,255,cv2.THRESH_BINARY_INV) #65 before
+    #cv2.imshow("Output",blur)
+    #cv2.waitKey(0)
+    #cv2.imshow("Output",thresh1)
+    #cv2.waitKey(0)
 
     lines = cv2.HoughLinesP(thresh1, 1, 1*math.pi/180.0, 50, None, 25,1) #100,30,0
 
@@ -197,18 +201,22 @@ def getLines(img):
     #print len(lines)
     
     lines = map(lambda x: x[0],lines)
+    
     sL = sorted(lines,key=lambda x: (x[2]-x[0])**2+(x[3]-x[1])**2, reverse=True)
+    
     if (len(sL)>350):
         bins = []
     else:
         bins = bin_lines(sL)
 
     for l in sL:
-        #cv2.line(small, (l[0], l[1]), (l[2], l[3]), (255,255,255), 1, 8)
+        cv2.line(img, (l[0], l[1]), (l[2], l[3]), (255,255,255), 1, 8)
         pass
-    
-    toDel = []
+    #cv2.imshow("Output",img)
+    #cv2.waitKey(0)
 
+    toDel = []
+    
     for i in range(len(bins)):
         if len(bins[i]) <= 1:
             toDel.append(i)
@@ -216,7 +224,7 @@ def getLines(img):
         del bins[i]
 
     rectpts = []
-
+    
     for b in bins:
         pnts = []
         for bi in b:
@@ -226,6 +234,7 @@ def getLines(img):
         box = cv2.boxPoints(rect)
         rectpts.append(box)
         box = np.int0(box)
+        
         #cv2.drawContours(small,[box],0,(200,0,0),2) #blue rectangles
 
         #l = b[0]

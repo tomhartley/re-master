@@ -8,7 +8,7 @@ class Stitch(object):
         self.type = stype
         if (self.type==StitchType.end):
             pos = [0,0]
-        if (pos == None):
+        if (pos is None):
             print "Error: Please provide a position for this stitch"
         self.x = float(pos[0])
         self.y = float(pos[1])

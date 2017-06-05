@@ -82,20 +82,20 @@ def graphFromLines(ls):
     G=nx.Graph()
     for i in ls:
         G.add_edge(toNode(i[0]),toNode(i[1]))
-    showGraph(G)
+    #showGraph(G)
     G = connectNearbyNodes(G)
     while True:
         prev = len(G)
-        showGraph(G)
+        #showGraph(G)
         G = generateIntersectionNodes(G)
         mid = len(G)
-        showGraph(G)
+        #showGraph(G)
         G = connectNearbyNodes(G)
         now = len(G)
         if (prev==now==mid):
             break
     
-    #showGraph(G)
+    showGraph(G)
     
     for u,v,d in G.edges(data=True):
         d["weight"] = np.linalg.norm(np.asarray(v)-np.asarray(u))
@@ -108,7 +108,6 @@ def graphFromLines(ls):
     print nx.is_eulerian(G)     
     MG = nx.MultiGraph(G)
     
-
     for a in range(len(oddnodes)/2):
         a1 = oddnodes[2*a]
         a2 = oddnodes[2*a+1]
@@ -122,7 +121,10 @@ def graphFromLines(ls):
     #print len(x)
         
     MG2,path = postman.single_chinese_postman_path(G)
-    print "MG1 edges: ",len(MG.edges())
-    print "MG2 edges: ",len(MG2.edges())
+    #print "MG1 edges: ",len(MG.edges())
+    #print "MG2 edges: ",len(MG2.edges())
+    for u,v,d in MG.edges(data=True):
+        d["weight"] = np.linalg.norm(np.asarray(v)-np.asarray(u))
+
     showGraph(MG2)
     return MG2
