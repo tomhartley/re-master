@@ -48,6 +48,22 @@ def running(circuit,stitchsize=0.5): #straight stitches, dist in mm
                stitchlist.append(st)
     return stitchlist
 
+def jumponly(circuit): #straight stitches, dist in mm
+    circuit = annotateEdges(circuit,jumpfirst = False)
+    
+    stitchlist = []
+
+    stitchlist.append(Stitch(StitchType.jump,circuit[0][0][0]))
+    
+    for edge in circuit:
+        line = edge[0]
+        #we're jumping
+        #jump it
+        stitchlist.append(Stitch(StitchType.jump,line[1]))
+        stitchlist.append(Stitch(StitchType.stitch,line[1]+np.array([0.1,0.1])))
+    return stitchlist
+
+
 def singlesatin(line1, line2, gap=0.4):
     line1 = np.asarray(line1)
     line2 = np.asarray(line2)

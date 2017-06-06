@@ -191,8 +191,9 @@ def getLines(img):
     ret,thresh1 = cv2.threshold(blur,65,255,cv2.THRESH_BINARY_INV) #65 before
     #cv2.imshow("Output",blur)
     #cv2.waitKey(0)
-    #cv2.imshow("Output",thresh1)
-    #cv2.waitKey(0)
+    cv2.imshow("Output",thresh1)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     lines = cv2.HoughLinesP(thresh1, 1, 1*math.pi/180.0, 50, None, 25,1) #100,30,0
 
@@ -205,7 +206,8 @@ def getLines(img):
     sL = sorted(lines,key=lambda x: (x[2]-x[0])**2+(x[3]-x[1])**2, reverse=True)
     
     if (len(sL)>350):
-        bins = []
+        print "lots of lines", len(sL)
+        bins = bin_lines(sL)
     else:
         bins = bin_lines(sL)
 

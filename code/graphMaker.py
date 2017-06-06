@@ -1,3 +1,4 @@
+
 """
 An example using Graph as a weighted network.
 """
@@ -72,7 +73,10 @@ def connectNearbyNodes(G):
         av_pt_node = toNode(av_pt)
         G.add_node(av_pt_node)
         for n in bundled:
-            G = nx.contracted_nodes(G,av_pt_node,n,self_loops=False)
+            try:
+                G = nx.contracted_nodes(G,av_pt_node,n,self_loops=False)
+            except:
+                pass
         cntr +=1
     print cntr
     return G
@@ -82,7 +86,7 @@ def graphFromLines(ls):
     G=nx.Graph()
     for i in ls:
         G.add_edge(toNode(i[0]),toNode(i[1]))
-    #showGraph(G)
+    showGraph(G)
     G = connectNearbyNodes(G)
     while True:
         prev = len(G)
@@ -96,6 +100,10 @@ def graphFromLines(ls):
             break
     
     showGraph(G)
+    
+    y = nx.connected_component_subgraphs(G)
+    
+    G = max(y,key=len)
     
     for u,v,d in G.edges(data=True):
         d["weight"] = np.linalg.norm(np.asarray(v)-np.asarray(u))
