@@ -6,6 +6,25 @@ import os
 import graphMaker
 import networkx as nx
 import graphToStitch
+import time
+import datetime
+
+def getnewfname(base):
+    
+    curnum = 0
+    while True:
+        if (not os.path.isfile(base+str(curnum)+".pes")):
+            break
+        else:
+            curnum+=1
+    
+    ts = time.time()
+    st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d::%H:%M:%S')
+    fin = base+st+".pes"
+
+    return base+str(curnum) + ".pes"
+
+    #return fin
 
 def justcopy():
     cap = cv2.VideoCapture(0)
@@ -14,8 +33,6 @@ def justcopy():
     cv2.imshow("Input image",img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-    #img = cv2.imread("IMG_7440.JPG")
-    #img = cv2.imread("tree.jpg")
     #img = cv2.imread("IMG_2030.JPG")
     #img = cv2.resize(img,(img.shape[1]/4,img.shape[0]/4))
     #cv2.imshow("Output",img)
@@ -48,10 +65,14 @@ def justcopy():
         print "Design is correct size"
     writeStitches(stitchlist,'csv_out/output.csv')
     os.system("./libembroidery-convert csv_out/output.csv pes_out/output.pes")
-    print("written")
+    f = getnewfname("all_pes/out")
+    os.system("cp pes_out/output.pes " + f)
+    print("Written file")
     
     #cv2.imshow("Output",img)
     #cv2.waitKey(0)
+
+
 
 def testsatin():
     stitchlist = graphToStitch.singlesatin([[40,40],[80,60]],[[40,40],[60,80]])
@@ -66,3 +87,6 @@ def testsatin():
 justcopy()
 
 #testsatin()
+
+#todo: save files to a folder, incrementing number. Make it do that before showing things.
+
