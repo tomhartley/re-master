@@ -189,15 +189,15 @@ def getLines(img):
     blur = cv2.GaussianBlur(img_grey,(9,9),0) #9x9 before
 
     ret,thresh1 = cv2.threshold(blur,65,255,cv2.THRESH_BINARY_INV) #65 before
-    #cv2.imshow("Output",blur)
-    #cv2.waitKey(0)
-    cv2.imshow("Output",thresh1)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imshow("Output",blur)
+    cv2.waitKey(3000)
+    cv2.imshow("Output",thresh1) #was being shown earlier
+    cv2.waitKey(3000)
+    #cv2.destroyAllWindows()
 
     lines = cv2.HoughLinesP(thresh1, 1, 1*math.pi/180.0, 50, None, 25,1) #100,30,0
 
-    if lines==None:
+    if lines is None:
         return ([])
     #print len(lines)
     
@@ -214,8 +214,8 @@ def getLines(img):
     for l in sL:
         cv2.line(img, (l[0], l[1]), (l[2], l[3]), (255,255,255), 1, 8)
         pass
-    #cv2.imshow("Output",img)
-    #cv2.waitKey(0)
+    cv2.imshow("Output",img)
+    cv2.waitKey(3000)
 
     toDel = []
     
@@ -251,7 +251,7 @@ def getLines(img):
         else:
             pt1 = (i[1]+i[2])/2
             pt2 = (i[0]+i[3])/2
-        cv2.line(img, (pt1[0],pt1[1]), (pt2[0],pt2[1]), (0,0,255), 1, 8 )
+        cv2.line(img, (pt1[0],pt1[1]), (pt2[0],pt2[1]), (0,0,255), 2, 8 )
         lns.append((pt1, pt2))
 
     return lns, img

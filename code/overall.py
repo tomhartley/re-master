@@ -10,7 +10,6 @@ import time
 import datetime
 
 def getnewfname(base):
-    
     curnum = 0
     while True:
         if (not os.path.isfile(base+str(curnum)+".pes")):
@@ -30,13 +29,23 @@ def justcopy():
     cap = cv2.VideoCapture(0)
     ret, img = cap.read()
     ret, img = cap.read()
-    cv2.imshow("Input image",img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    n = 0
+    while n<10:
+        ret, img = cap.read()
+        cv2.imwrite("saved_pics/image_4_"+str(n)+".jpg",img)
+        print"capped"
+        time.sleep(2)
+        n+=1
+        
+    blah = 1/0.0
     #img = cv2.imread("IMG_2030.JPG")
     #img = cv2.resize(img,(img.shape[1]/4,img.shape[0]/4))
+
+    cv2.imshow("Output",img)
+    cv2.waitKey(3000)
+
+
     #cv2.imshow("Output",img)
-    #cv2.waitKey(0)
     
     lines, img = linefinder.getLines(img)
     #div by 7 to get something that fits.
@@ -67,11 +76,15 @@ def justcopy():
     os.system("./libembroidery-convert csv_out/output.csv pes_out/output.pes")
     f = getnewfname("all_pes/out")
     os.system("cp pes_out/output.pes " + f)
+    
     print("Written file")
     
-    #cv2.imshow("Output",img)
-    #cv2.waitKey(0)
-
+    #cv2.waitKey(30)
+    #
+    graphMaker.showGraph(MG)
+    cv2.imshow("Output",img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 def testsatin():

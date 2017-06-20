@@ -23,7 +23,7 @@ def showGraph(G):
 
     plt.axis('off')
     plt.savefig("weighted_graph.png") # save as png
-    plt.show() # display
+    plt.show(block=False) # display
 
 def generateIntersectionNodes(G):
     edgesToHandle = list(G.edges())
@@ -86,7 +86,7 @@ def graphFromLines(ls):
     G=nx.Graph()
     for i in ls:
         G.add_edge(toNode(i[0]),toNode(i[1]))
-    showGraph(G)
+    #showGraph(G)
     G = connectNearbyNodes(G)
     while True:
         prev = len(G)
@@ -99,7 +99,7 @@ def graphFromLines(ls):
         if (prev==now==mid):
             break
     
-    showGraph(G)
+    #showGraph(G)
     
     y = nx.connected_component_subgraphs(G)
     
@@ -134,5 +134,5 @@ def graphFromLines(ls):
     for u,v,d in MG.edges(data=True):
         d["weight"] = np.linalg.norm(np.asarray(v)-np.asarray(u))
 
-    showGraph(MG2)
+    #showGraph(MG2)
     return MG2
