@@ -185,17 +185,21 @@ def bin_lines(lns):
     return bins
     
 def getLines(img):
+    imstack = []
+    
     img_grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    imstack.append((img_grey.copy(),3)) #spend 3 seconds having this appear
+    
     blur = cv2.GaussianBlur(img_grey,(9,9),0) #9x9 before
+    imstack.append((blur.copy(),3))
 
-    ret,thresh1 = cv2.threshold(blur,65,255,cv2.THRESH_BINARY_INV) #65 before
-    cv2.imshow("Output",blur)
-    cv2.waitKey(3000)
-    cv2.imshow("Output",thresh1) #was being shown earlier
-    cv2.waitKey(3000)
-    #cv2.destroyAllWindows()
+    ret,thresh1 = cv2.threshold(blur,85,255,cv2.THRESH_BINARY_INV) #65 before
+    invthresh = cv2.bitwise_not(thresh1)
+    imstack.append((invthresh.copy(),3))
 
-    lines = cv2.HoughLinesP(thresh1, 1, 1*math.pi/180.0, 50, None, 25,1) #100,30,0
+
+    lines = cv2.HoughLinesP(thresh1, 1, 1*math.pi/180.0, 50, None, 25,1)
+    #lines = cv2.HoughLinesP(thresh1, 1, 1*math.pi/180.0, 50, None, 25,1)
 
     if lines is None:
         return ([])
@@ -214,8 +218,8 @@ def getLines(img):
     for l in sL:
         cv2.line(img, (l[0], l[1]), (l[2], l[3]), (255,255,255), 1, 8)
         pass
-    cv2.imshow("Output",img)
-    cv2.waitKey(3000)
+    
+    imstack.append((img.copy(),3))
 
     toDel = []
     
@@ -254,4 +258,5 @@ def getLines(img):
         cv2.line(img, (pt1[0],pt1[1]), (pt2[0],pt2[1]), (0,0,255), 2, 8 )
         lns.append((pt1, pt2))
 
-    return lns, img
+    #imstack.append((img.copy(),3))
+    return lns, imstack

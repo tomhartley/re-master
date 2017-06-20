@@ -8,6 +8,13 @@ import networkx as nx
 import graphToStitch
 import time
 import datetime
+import imfade
+
+stitchtype = 3 # 1 is jump, 2 is running, 3 is satin, 4 is tree
+cap = cv2.VideoCapture(0) #change to 1 if you need the later
+ret, img = cap.read()
+time.sleep(0.5)
+quit = False
 
 def getnewfname(base):
     curnum = 0
@@ -26,28 +33,46 @@ def getnewfname(base):
     #return fin
 
 def justcopy():
-    cap = cv2.VideoCapture(0)
-    ret, img = cap.read()
-    ret, img = cap.read()
-    n = 0
-    while n<10:
+    while True:
         ret, img = cap.read()
-        cv2.imwrite("saved_pics/image_4_"+str(n)+".jpg",img)
-        print"capped"
-        time.sleep(2)
-        n+=1
-        
-    blah = 1/0.0
+        if (img is None):
+            print "WTF"
+            break
+        imgbig = cv2.resize(img,(img.shape[1]*2,img.shape[0]*2))
+        cv2.imshow("RE~MASTER",img)
+        x = cv2.waitKey(30) #25 fps
+        global stitchtype
+        if (x==ord(' ')):
+            break
+        elif (x==ord('j')):
+            stitchtype=1
+            print "Switching to jump stitch"
+        elif (x==ord('r')):
+            stitchtype=2
+            print "Switching to running stitch"
+        elif (x==ord('s')):
+            stitchtype=3
+            print "Switching to satin stitch"
+        elif (x==ord('t')):
+            stitchtype=4
+            print "Switching to new quality stitch"
+        elif (x==ord('q')):
+            global quit
+            quit=True
+            return None
+     
+    imstack = []
     #img = cv2.imread("IMG_2030.JPG")
     #img = cv2.resize(img,(img.shape[1]/4,img.shape[0]/4))
-
-    cv2.imshow("Output",img)
-    cv2.waitKey(3000)
+    imstack.append((img.copy(),0)) 
+    #cv2.imshow("RE~MASTER",img)
+    #cv2.waitKey(3000)
 
 
     #cv2.imshow("Output",img)
     
-    lines, img = linefinder.getLines(img)
+    lines, stack = linefinder.getLines(img)
+    imstack = imstack + stack
     #div by 7 to get something that fits.
     lines = map(lambda (start,end): (start/7,end/7), lines)
 
@@ -60,10 +85,15 @@ def justcopy():
     
     #######CHANGE ME!! put a # in front of the ones you aren't using
     
-    #stitchlist = graphToStitch.tree(circuit,MG,bottomwidth = 6,topwidth=0) #change the numbers << all in mm
-    stitchlist = graphToStitch.satin(circuit,satinwidth = 2)
-    #stitchlist = graphToStitch.running(circuit,stitchsize=0.5)
-    #stitchlist = graphToStitch.jumponly(circuit)
+    if (stitchtype == 1):
+        stitchlist = graphToStitch.jumponly(circuit)
+    elif (stitchtype == 2):
+        stitchlist = graphToStitch.running(circuit,stitchsize=0.5)
+    elif (stitchtype == 3):
+        stitchlist = graphToStitch.satin(circuit,satinwidth = 4)
+    elif (stitchtype == 4):
+        stitchlist = graphToStitch.tree(circuit,MG,bottomwidth = 8,topwidth=0) #change the numbers << all in mm
+    
 
 
     minimiseDesign(stitchlist) #brings it to bottom left
@@ -76,16 +106,21 @@ def justcopy():
     os.system("./libembroidery-convert csv_out/output.csv pes_out/output.pes")
     f = getnewfname("all_pes/out")
     os.system("cp pes_out/output.pes " + f)
+    os.system("cp pes_out/output.pes /Volumes/NO\ NAME/embroider.pes")
     
     print("Written file")
     
     #cv2.waitKey(30)
     #
-    graphMaker.showGraph(MG)
-    cv2.imshow("Output",img)
+    #graphMaker.showGraph(MG)
+    
+    for i in range(0,len(imstack)-1):
+        imfade.showfade(imstack[i][0],imstack[i+1][0],imstack[i+1][1])
+    
+    imfade.addlines(imstack[-1][0],circuit,5)
+    
+    #cv2.imshow("RE~MASTER",imstack[-1][0])
     cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
 
 def testsatin():
     stitchlist = graphToStitch.singlesatin([[40,40],[80,60]],[[40,40],[60,80]])
@@ -97,7 +132,8 @@ def testsatin():
     writeStitches(stitchlist,'csv_out/output.csv')
     os.system("./libembroidery-convert csv_out/output.csv pes_out/output.pes") #change the pes to dst to output dst
 
-justcopy()
+while not quit:
+    justcopy()
 
 #testsatin()
 
